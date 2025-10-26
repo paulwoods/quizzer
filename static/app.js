@@ -1,4 +1,6 @@
+// Elements
 const genForm = document.getElementById('generate-form');
+const generateBtn = document.getElementById('generate-btn');
 const topicInput = document.getElementById('topic');
 const numInput = document.getElementById('num');
 const genStatus = document.getElementById('gen-status');
@@ -8,10 +10,12 @@ const submitBtn = document.getElementById('submit-answers');
 const resultsSection = document.getElementById('results');
 const scoreDiv = document.getElementById('score');
 const detailsDiv = document.getElementById('details');
+const toastRoot = document.getElementById('toast-root');
 
 let currentQuizId = null;
 let currentQuestions = [];
 
+// Utils
 function show(el) {
   el.classList.remove('hidden');
 }
@@ -20,11 +24,63 @@ function hide(el) {
   el.classList.add('hidden');
 }
 
+function smoothScrollIntoView(el) {
+  el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function setBusy(section, busy) {
+  section.setAttribute('aria-busy', busy ? 'true' : 'false');
+}
+
+function setGenBusy(busy) {
+  if (busy) {
+    genStatus.innerHTML = '<span class="spinner" aria-hidden="true"></span> Generating quiz...';
+    if (generateBtn) generateBtn.disabled = true;
+    topicInput.disabled = true;
+    numInput.disabled = true;
+  } else {
+    genStatus.textContent = '';
+    if (generateBtn) generateBtn.disabled = false;
+    topicInput.disabled = false;
+    numInput.disabled = false;
+  }
+}
+
+function setSubmitBusy(busy) {
+  if (!submitBtn) return;
+  if (busy) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Submitting...';
+  } else {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span class="btn-label">Submit Answers</span>';
+  }
+}
+
+function createToast(message) {
+  try {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = message;
+    toastRoot.classList.remove('sr-only');
+    toastRoot.appendChild(t);
+    setTimeout(() => {
+      t.remove();
+      if (!toastRoot.firstChild) toastRoot.classList.add('sr-only');
+    }, 3500);
+  } catch (e) {
+    // Fallback
+    alert(message);
+  }
+}
+
 function renderQuiz(questions) {
   quizForm.innerHTML = '';
   questions.forEach((q, idx) => {
     const fieldset = document.createElement('fieldset');
+    fieldset.className = 'question';
     const legend = document.createElement('legend');
+    legend.className = 'q-title';
     legend.textContent = `${idx + 1}. ${q.prompt}`;
     fieldset.appendChild(legend);
 
@@ -55,7 +111,14 @@ async function generateQuiz(evt) {
   evt.preventDefault();
   hide(resultsSection);
   hide(quizSection);
-  genStatus.textContent = 'Generating quiz...';
+  setGenBusy(true);
+
+  // Persist last values
+  try {
+    localStorage.setItem('quizzer:lastTopic', topicInput.value);
+    localStorage.setItem('quizzer:lastNum', String(numInput.value));
+  } catch {
+  }
 
   try {
     const res = await fetch('/api/generate_quiz', {
@@ -71,10 +134,14 @@ async function generateQuiz(evt) {
     currentQuizId = data.quiz_id;
     currentQuestions = data.questions;
     renderQuiz(currentQuestions);
-    genStatus.textContent = '';
     show(quizSection);
+    smoothScrollIntoView(quizSection);
   } catch (err) {
-    genStatus.textContent = `Error: ${err.message}`;
+    const message = (err && err.message) ? err.message : String(err);
+    genStatus.textContent = `Error: ${message}`;
+    createToast(`Generate failed — ${message}`);
+  } finally {
+    setGenBusy(false);
   }
 }
 
@@ -88,6 +155,9 @@ async function submitAnswers() {
       selected_index: selected ? Number(selected.value) : null
     };
   }).filter(a => a.selected_index !== null);
+
+  setSubmitBusy(true);
+  setBusy(quizSection, true);
 
   try {
     const res = await fetch('/api/submit', {
@@ -134,10 +204,25 @@ async function submitAnswers() {
     detailsDiv.innerHTML = '';
     detailsDiv.appendChild(frag);
     show(resultsSection);
+    smoothScrollIntoView(resultsSection);
   } catch (err) {
-    alert('Error submitting answers: ' + err.message);
+    const message = (err && err.message) ? err.message : String(err);
+    createToast(`Submit failed — ${message}`);
+  } finally {
+    setSubmitBusy(false);
+    setBusy(quizSection, false);
   }
 }
 
-genForm.addEventListener('submit', generateQuiz);
-submitBtn.addEventListener('click', submitAnswers);
+// Event wiring
+if (genForm) genForm.addEventListener('submit', generateQuiz);
+if (submitBtn) submitBtn.addEventListener('click', submitAnswers);
+
+// Restore last values
+try {
+  const lt = localStorage.getItem('quizzer:lastTopic');
+  const ln = localStorage.getItem('quizzer:lastNum');
+  if (lt && topicInput) topicInput.value = lt;
+  if (ln && numInput) numInput.value = ln;
+} catch {
+}
