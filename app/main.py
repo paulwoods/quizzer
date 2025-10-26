@@ -1,10 +1,11 @@
 import os
 import uuid
+from typing import Dict, List
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from typing import Dict, List
 
 from .models import (
     GenerateQuizRequest,
@@ -48,7 +49,7 @@ if os.path.isdir(static_dir):
 @app.post("/api/generate_quiz", response_model=GenerateQuizResponse)
 async def generate_quiz(req: GenerateQuizRequest) -> GenerateQuizResponse:
     try:
-        llm_quiz = generate_quiz_via_openai(req.topic, req.num_questions, req.difficulty)
+        llm_quiz = generate_quiz_via_openai(req.topic, req.num_questions, req.difficulty, req.model)
     except QuizGenerationError as e:
         raise HTTPException(status_code=502, detail=str(e))
 

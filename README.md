@@ -61,7 +61,8 @@ http://localhost:8000/
 #### How it works
 
 - POST `/api/generate_quiz` with
-  `{ topic: string, num_questions: number (1..20), difficulty: "easy"|"medium"|"hard" (default: "medium") }`.
+  `{ topic: string, num_questions: number (1..20), difficulty: "easy"|"medium"|"hard" (default: "medium"), model?: string }`.
+    - `model` is optional. If omitted, the server uses `OPENAI_MODEL` env var or falls back to `gpt-4o-mini`.
     - Calls OpenAI to generate N questions at the requested difficulty.
     - Stores the correct answers in memory keyed by `quiz_id` and returns only the questions to the client.
 - POST `/api/submit` with `{ quiz_id: string, answers: [{ question_id, selected_index }] }`.

@@ -3,9 +3,10 @@ import os
 import random
 import time
 import uuid
+from typing import List, Optional
+
 from openai import OpenAI
 from pydantic import ValidationError
-from typing import List
 
 from .models import LLMQuiz, LLMQuestion
 
@@ -53,7 +54,8 @@ def _parse_llm_json(json_text: str) -> LLMQuiz:
     return quiz
 
 
-def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, max_retries: int = 1) -> LLMQuiz:
+def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, model: Optional[str] = None,
+                             max_retries: int = 1) -> LLMQuiz:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise QuizGenerationError("OPENAI_API_KEY environment variable is not set.")
@@ -66,11 +68,14 @@ def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, ma
         {"role": "user", "content": _build_user_prompt(topic, num_questions, difficulty)},
     ]
 
+    # Choose model: request-provided model takes precedence if non-empty; otherwise use default
+    chosen_model = (model or "").strip() or DEFAULT_MODEL
+
     last_error = None
     for attempt in range(max_retries + 1):
         try:
             completion = client.chat.completions.create(
-                model=DEFAULT_MODEL,
+                model=chosen_model,
                 messages=messages,
                 temperature=0.7,
                 response_format={"type": "json_object"},

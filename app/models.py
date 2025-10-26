@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, conint, validator
 from typing import List, Optional, Literal
+
+from pydantic import BaseModel, Field, conint, validator
 
 
 class GenerateQuizRequest(BaseModel):
     topic: str = Field(..., min_length=2, max_length=120)
     num_questions: conint(ge=1, le=20) = 5
     difficulty: Literal["easy", "medium", "hard"] = "medium"
+    model: Optional[str] = Field(None, min_length=1, max_length=100)
 
 
 class QuestionPublic(BaseModel):

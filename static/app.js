@@ -4,6 +4,8 @@ const generateBtn = document.getElementById('generate-btn');
 const topicInput = document.getElementById('topic');
 const numInput = document.getElementById('num');
 const difficultySelect = document.getElementById('difficulty');
+const modelSelect = document.getElementById('modelSelect');
+const customModelInput = document.getElementById('customModel');
 const genStatus = document.getElementById('gen-status');
 const quizSection = document.getElementById('quiz');
 const quizForm = document.getElementById('quiz-form');
@@ -40,12 +42,16 @@ function setGenBusy(busy) {
     topicInput.disabled = true;
     numInput.disabled = true;
     if (difficultySelect) difficultySelect.disabled = true;
+    if (modelSelect) modelSelect.disabled = true;
+    if (customModelInput) customModelInput.disabled = true;
   } else {
     genStatus.textContent = '';
     if (generateBtn) generateBtn.disabled = false;
     topicInput.disabled = false;
     numInput.disabled = false;
     if (difficultySelect) difficultySelect.disabled = false;
+    if (modelSelect) modelSelect.disabled = false;
+    if (customModelInput) customModelInput.disabled = false;
   }
 }
 
@@ -116,23 +122,47 @@ async function generateQuiz(evt) {
   hide(quizSection);
   setGenBusy(true);
 
+  // Determine selected model
+  let selectedModel = null;
+  try {
+    const sel = modelSelect ? modelSelect.value : '';
+    if (sel === 'custom') {
+      const custom = customModelInput ? customModelInput.value.trim() : '';
+      if (!custom) {
+        genStatus.textContent = 'Please enter a custom model name or choose a preset model.';
+        createToast('Please provide a model name');
+        setGenBusy(false);
+        return;
+      }
+      selectedModel = custom;
+    } else if (sel) {
+      selectedModel = sel;
+    }
+  } catch {
+  }
+
   // Persist last values
   try {
     localStorage.setItem('quizzer:lastTopic', topicInput.value);
     localStorage.setItem('quizzer:lastNum', String(numInput.value));
     if (difficultySelect) localStorage.setItem('quizzer:lastDifficulty', difficultySelect.value);
+    if (modelSelect) localStorage.setItem('quizzer:lastModelSelect', modelSelect.value);
+    if (customModelInput) localStorage.setItem('quizzer:lastCustomModel', customModelInput.value.trim());
   } catch {
   }
 
   try {
+    const payload = {
+      topic: topicInput.value,
+      num_questions: Number(numInput.value),
+      difficulty: difficultySelect ? difficultySelect.value : 'medium'
+    };
+    if (selectedModel) payload.model = selectedModel;
+
     const res = await fetch('/api/generate_quiz', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        topic: topicInput.value,
-        num_questions: Number(numInput.value),
-        difficulty: difficultySelect ? difficultySelect.value : 'medium'
-      })
+      body: JSON.stringify(payload)
     });
     if (!res.ok) {
       const msg = await res.text();
@@ -222,17 +252,31 @@ async function submitAnswers() {
   }
 }
 
+function updateCustomModelVisibility() {
+  if (!modelSelect || !customModelInput) return;
+  const isCustom = modelSelect.value === 'custom';
+  customModelInput.style.display = isCustom ? 'block' : 'none';
+}
+
 // Event wiring
 if (genForm) genForm.addEventListener('submit', generateQuiz);
 if (submitBtn) submitBtn.addEventListener('click', submitAnswers);
+if (modelSelect) modelSelect.addEventListener('change', () => {
+  updateCustomModelVisibility();
+});
 
 // Restore last values
 try {
   const lt = localStorage.getItem('quizzer:lastTopic');
   const ln = localStorage.getItem('quizzer:lastNum');
   const ld = localStorage.getItem('quizzer:lastDifficulty');
+  const lmSel = localStorage.getItem('quizzer:lastModelSelect');
+  const lmCust = localStorage.getItem('quizzer:lastCustomModel');
   if (lt && topicInput) topicInput.value = lt;
   if (ln && numInput) numInput.value = ln;
   if (ld && difficultySelect) difficultySelect.value = ld;
+  if (lmSel && modelSelect) modelSelect.value = lmSel;
+  if (lmCust && customModelInput) customModelInput.value = lmCust;
+  updateCustomModelVisibility();
 } catch {
 }

@@ -43,6 +43,19 @@
                     <option value="hard">Hard</option>
                 </select>
             </label>
+            <label class="form-field">
+                <span>Model</span>
+                <div class="container-row">
+                    <select class="input" id="modelSelect" name="modelSelect" style="min-width:200px; flex: 0 0 220px;">
+                        <option selected value="gpt-4o-mini">gpt-4o-mini (default)</option>
+                        <option value="gpt-4o">gpt-4o</option>
+                        <option value="custom">Custom…</option>
+                    </select>
+                    <input class="input" id="customModel" name="customModel"
+                           placeholder="Enter model name, e.g., gpt-4o-mini" style="display:none; flex:1 1 280px;"
+                           type="text"/>
+                </div>
+            </label>
             <div class="actions">
                 <button class="btn primary" id="generate-btn" type="submit">
                     <span class="btn-label">Generate</span>
