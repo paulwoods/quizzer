@@ -317,3 +317,22 @@ legend.q-title {
         transition: none;
     }
 }
+
+
+/* --- Custom styling for select dropdowns (difficulty + model) --- */
+select.input {
+    background-color: rgba(255, 255, 255, 0.04); /* solid blue background */
+    color: #ffffff; /* white text */
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Dropdown list items (supported in most modern browsers) */
+select.input option {
+    background-color: rgba(255, 255, 255, 0.04); /* keep menu blue */
+    color: #ffffff;
+}
+
+/* Provide a slightly darker blue on hover/open in some UAs */
+select.input:focus, select.input:hover {
+    background-color: #1b357a;
+}
