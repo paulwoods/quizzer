@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Quizzer</title>
+    <link href="/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h1>Quizzer</h1>
+
+    <section id="generator">
+        <h2>Create a Quiz</h2>
+        <form id="generate-form">
+            <label>
+                Topic
+                <input id="topic" maxlength="120" minlength="2" name="topic" placeholder="e.g., Python basics" required
+                       type="text"/>
+            </label>
+            <label>
+                Number of questions
+                <input id="num" max="20" min="1" name="num" type="number" value="5"/>
+            </label>
+            <button type="submit">Generate</button>
+        </form>
+        <div class="status" id="gen-status"></div>
+    </section>
+
+    <section class="hidden" id="quiz">
+        <h2>Quiz</h2>
+        <form id="quiz-form"></form>
+        <div class="actions">
+            <button id="submit-answers">Submit Answers</button>
+        </div>
+    </section>
+
+    <section class="hidden" id="results">
+        <h2>Results</h2>
+        <div id="score"></div>
+        <div id="details"></div>
+    </section>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
