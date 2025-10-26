@@ -24,10 +24,18 @@ def _build_system_prompt() -> str:
     )
 
 
-def _build_user_prompt(topic: str, num_questions: int) -> str:
+def _build_user_prompt(topic: str, num_questions: int, difficulty: str) -> str:
+    level_guidance = {
+        "easy": "Focus on foundational, factual, or definitional knowledge. Avoid multi-step reasoning.",
+        "medium": "Typical practitioner difficulty: mix of concepts and light application.",
+        "hard": "Advanced/nuanced knowledge; may require multi-step reasoning or subtle distinctions (still unambiguous).",
+    }.get(difficulty, "Typical practitioner difficulty: mix of concepts and light application.")
+
     return (
         f"Generate {num_questions} multiple-choice questions about '{topic}'. "
+        f"Difficulty level: {difficulty}. {level_guidance} "
         "Each question must have: a concise 'prompt', exactly 4 'choices' (strings), and a 'correct_index' (0-3). "
+        "Ensure exactly one correct choice per question and avoid trick wording. "
         "Respond ONLY as strict JSON with the following structure: \n"
         "{\n  \"questions\": [\n    { \n      \"prompt\": \"...\",\n      \"choices\": [\"...\", \"...\", \"...\", \"...\"],\n      \"correct_index\": 0\n    }\n  ]\n}\n"
     )
@@ -45,7 +53,7 @@ def _parse_llm_json(json_text: str) -> LLMQuiz:
     return quiz
 
 
-def generate_quiz_via_openai(topic: str, num_questions: int, max_retries: int = 1) -> LLMQuiz:
+def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, max_retries: int = 1) -> LLMQuiz:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise QuizGenerationError("OPENAI_API_KEY environment variable is not set.")
@@ -55,7 +63,7 @@ def generate_quiz_via_openai(topic: str, num_questions: int, max_retries: int = 
     # We'll ask for JSON output via response_format for higher reliability
     messages = [
         {"role": "system", "content": _build_system_prompt()},
-        {"role": "user", "content": _build_user_prompt(topic, num_questions)},
+        {"role": "user", "content": _build_user_prompt(topic, num_questions, difficulty)},
     ]
 
     last_error = None

@@ -3,6 +3,7 @@ const genForm = document.getElementById('generate-form');
 const generateBtn = document.getElementById('generate-btn');
 const topicInput = document.getElementById('topic');
 const numInput = document.getElementById('num');
+const difficultySelect = document.getElementById('difficulty');
 const genStatus = document.getElementById('gen-status');
 const quizSection = document.getElementById('quiz');
 const quizForm = document.getElementById('quiz-form');
@@ -38,11 +39,13 @@ function setGenBusy(busy) {
     if (generateBtn) generateBtn.disabled = true;
     topicInput.disabled = true;
     numInput.disabled = true;
+    if (difficultySelect) difficultySelect.disabled = true;
   } else {
     genStatus.textContent = '';
     if (generateBtn) generateBtn.disabled = false;
     topicInput.disabled = false;
     numInput.disabled = false;
+    if (difficultySelect) difficultySelect.disabled = false;
   }
 }
 
@@ -117,6 +120,7 @@ async function generateQuiz(evt) {
   try {
     localStorage.setItem('quizzer:lastTopic', topicInput.value);
     localStorage.setItem('quizzer:lastNum', String(numInput.value));
+    if (difficultySelect) localStorage.setItem('quizzer:lastDifficulty', difficultySelect.value);
   } catch {
   }
 
@@ -124,7 +128,11 @@ async function generateQuiz(evt) {
     const res = await fetch('/api/generate_quiz', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({topic: topicInput.value, num_questions: Number(numInput.value)})
+      body: JSON.stringify({
+        topic: topicInput.value,
+        num_questions: Number(numInput.value),
+        difficulty: difficultySelect ? difficultySelect.value : 'medium'
+      })
     });
     if (!res.ok) {
       const msg = await res.text();
@@ -222,7 +230,9 @@ if (submitBtn) submitBtn.addEventListener('click', submitAnswers);
 try {
   const lt = localStorage.getItem('quizzer:lastTopic');
   const ln = localStorage.getItem('quizzer:lastNum');
+  const ld = localStorage.getItem('quizzer:lastDifficulty');
   if (lt && topicInput) topicInput.value = lt;
   if (ln && numInput) numInput.value = ln;
+  if (ld && difficultySelect) difficultySelect.value = ld;
 } catch {
 }

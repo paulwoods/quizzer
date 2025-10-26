@@ -60,8 +60,9 @@ http://localhost:8000/
 
 #### How it works
 
-- POST `/api/generate_quiz` with `{ topic: string, num_questions: number (1..20) }`.
-    - Calls OpenAI to generate N questions.
+- POST `/api/generate_quiz` with
+  `{ topic: string, num_questions: number (1..20), difficulty: "easy"|"medium"|"hard" (default: "medium") }`.
+    - Calls OpenAI to generate N questions at the requested difficulty.
     - Stores the correct answers in memory keyed by `quiz_id` and returns only the questions to the client.
 - POST `/api/submit` with `{ quiz_id: string, answers: [{ question_id, selected_index }] }`.
     - Scores the quiz and returns detailed per‑question results and totals.

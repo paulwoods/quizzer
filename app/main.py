@@ -48,7 +48,7 @@ if os.path.isdir(static_dir):
 @app.post("/api/generate_quiz", response_model=GenerateQuizResponse)
 async def generate_quiz(req: GenerateQuizRequest) -> GenerateQuizResponse:
     try:
-        llm_quiz = generate_quiz_via_openai(req.topic, req.num_questions)
+        llm_quiz = generate_quiz_via_openai(req.topic, req.num_questions, req.difficulty)
     except QuizGenerationError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
