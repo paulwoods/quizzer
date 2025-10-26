@@ -3,7 +3,7 @@ import os
 import random
 import time
 import uuid
-from typing import List, Optional
+from typing import List
 
 from openai import OpenAI
 from pydantic import ValidationError
@@ -54,7 +54,7 @@ def _parse_llm_json(json_text: str) -> LLMQuiz:
     return quiz
 
 
-def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, model: Optional[str] = None,
+def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, model: str | None = None,
                              max_retries: int = 1) -> LLMQuiz:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:

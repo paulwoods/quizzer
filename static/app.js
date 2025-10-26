@@ -5,7 +5,6 @@ const topicInput = document.getElementById('topic');
 const numInput = document.getElementById('num');
 const difficultySelect = document.getElementById('difficulty');
 const modelSelect = document.getElementById('modelSelect');
-const customModelInput = document.getElementById('customModel');
 const genStatus = document.getElementById('gen-status');
 const quizSection = document.getElementById('quiz');
 const quizForm = document.getElementById('quiz-form');
@@ -43,7 +42,6 @@ function setGenBusy(busy) {
     numInput.disabled = true;
     if (difficultySelect) difficultySelect.disabled = true;
     if (modelSelect) modelSelect.disabled = true;
-    if (customModelInput) customModelInput.disabled = true;
   } else {
     genStatus.textContent = '';
     if (generateBtn) generateBtn.disabled = false;
@@ -51,7 +49,6 @@ function setGenBusy(busy) {
     numInput.disabled = false;
     if (difficultySelect) difficultySelect.disabled = false;
     if (modelSelect) modelSelect.disabled = false;
-    if (customModelInput) customModelInput.disabled = false;
   }
 }
 
@@ -122,24 +119,8 @@ async function generateQuiz(evt) {
   hide(quizSection);
   setGenBusy(true);
 
-  // Determine selected model
-  let selectedModel = null;
-  try {
-    const sel = modelSelect ? modelSelect.value : '';
-    if (sel === 'custom') {
-      const custom = customModelInput ? customModelInput.value.trim() : '';
-      if (!custom) {
-        genStatus.textContent = 'Please enter a custom model name or choose a preset model.';
-        createToast('Please provide a model name');
-        setGenBusy(false);
-        return;
-      }
-      selectedModel = custom;
-    } else if (sel) {
-      selectedModel = sel;
-    }
-  } catch {
-  }
+  // Determine selected model from preset dropdown
+  const selectedModel = modelSelect && modelSelect.value ? modelSelect.value : null;
 
   // Persist last values
   try {
@@ -147,7 +128,6 @@ async function generateQuiz(evt) {
     localStorage.setItem('quizzer:lastNum', String(numInput.value));
     if (difficultySelect) localStorage.setItem('quizzer:lastDifficulty', difficultySelect.value);
     if (modelSelect) localStorage.setItem('quizzer:lastModelSelect', modelSelect.value);
-    if (customModelInput) localStorage.setItem('quizzer:lastCustomModel', customModelInput.value.trim());
   } catch {
   }
 
@@ -252,18 +232,9 @@ async function submitAnswers() {
   }
 }
 
-function updateCustomModelVisibility() {
-  if (!modelSelect || !customModelInput) return;
-  const isCustom = modelSelect.value === 'custom';
-  customModelInput.style.display = isCustom ? 'block' : 'none';
-}
-
 // Event wiring
 if (genForm) genForm.addEventListener('submit', generateQuiz);
 if (submitBtn) submitBtn.addEventListener('click', submitAnswers);
-if (modelSelect) modelSelect.addEventListener('change', () => {
-  updateCustomModelVisibility();
-});
 
 // Restore last values
 try {
@@ -271,12 +242,9 @@ try {
   const ln = localStorage.getItem('quizzer:lastNum');
   const ld = localStorage.getItem('quizzer:lastDifficulty');
   const lmSel = localStorage.getItem('quizzer:lastModelSelect');
-  const lmCust = localStorage.getItem('quizzer:lastCustomModel');
   if (lt && topicInput) topicInput.value = lt;
   if (ln && numInput) numInput.value = ln;
   if (ld && difficultySelect) difficultySelect.value = ld;
   if (lmSel && modelSelect) modelSelect.value = lmSel;
-  if (lmCust && customModelInput) customModelInput.value = lmCust;
-  updateCustomModelVisibility();
 } catch {
 }
