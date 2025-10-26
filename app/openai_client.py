@@ -71,13 +71,21 @@ def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, mo
     # Choose model: request-provided model takes precedence if non-empty; otherwise use default
     chosen_model = (model or "").strip() or DEFAULT_MODEL
 
+    # generate failed — {"detail":"Failed to generate a valid quiz:
+    # Error code: 400 - {'error': {'message': \"Unsupported value:
+    # 'temperature' does not support 0.7 with this model.
+    # Only the default (1) value is supported.\", 'type':
+    # 'invalid_request_error', 'param': 'temperature',
+    # 'code': 'unsupported_value'}}"}
+
     last_error = None
     for attempt in range(max_retries + 1):
         try:
             completion = client.chat.completions.create(
                 model=chosen_model,
                 messages=messages,
-                temperature=0.7,
+                # temperature=0.7, # useful for gpt-4
+                temperature=1,  # gpt-5 requires temperature=1
                 response_format={"type": "json_object"},
             )
             content = completion.choices[0].message.content
