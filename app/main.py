@@ -33,7 +33,16 @@ app.add_middleware(
 # Static files (frontend)
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.isdir(static_dir):
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+
+    @app.get("/")
+    async def serve_index():
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_path):
+            from fastapi.responses import FileResponse
+            return FileResponse(index_path)
+        return HTMLResponse("<h1>Quizzer</h1>")
 
 
 @app.post("/api/generate_quiz", response_model=GenerateQuizResponse)
