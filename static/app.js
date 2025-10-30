@@ -4,7 +4,6 @@ const generateBtn = document.getElementById('generate-btn');
 const topicInput = document.getElementById('topic');
 const numInput = document.getElementById('num');
 const difficultySelect = document.getElementById('difficulty');
-const modelSelect = document.getElementById('modelSelect');
 const genStatus = document.getElementById('gen-status');
 const quizSection = document.getElementById('quiz');
 const quizForm = document.getElementById('quiz-form');
@@ -41,14 +40,12 @@ function setGenBusy(busy) {
     topicInput.disabled = true;
     numInput.disabled = true;
     if (difficultySelect) difficultySelect.disabled = true;
-    if (modelSelect) modelSelect.disabled = true;
   } else {
     genStatus.textContent = '';
     if (generateBtn) generateBtn.disabled = false;
     topicInput.disabled = false;
     numInput.disabled = false;
     if (difficultySelect) difficultySelect.disabled = false;
-    if (modelSelect) modelSelect.disabled = false;
   }
 }
 
@@ -119,15 +116,12 @@ async function generateQuiz(evt) {
   hide(quizSection);
   setGenBusy(true);
 
-  // Determine selected model from preset dropdown
-  const selectedModel = modelSelect && modelSelect.value ? modelSelect.value : null;
 
   // Persist last values
   try {
     localStorage.setItem('quizzer:lastTopic', topicInput.value);
     localStorage.setItem('quizzer:lastNum', String(numInput.value));
     if (difficultySelect) localStorage.setItem('quizzer:lastDifficulty', difficultySelect.value);
-    if (modelSelect) localStorage.setItem('quizzer:lastModelSelect', modelSelect.value);
   } catch {
   }
 
@@ -137,7 +131,6 @@ async function generateQuiz(evt) {
       num_questions: Number(numInput.value),
       difficulty: difficultySelect ? difficultySelect.value : 'medium'
     };
-    if (selectedModel) payload.model = selectedModel;
 
     const res = await fetch('/api/generate_quiz', {
       method: 'POST',
@@ -241,10 +234,8 @@ try {
   const lt = localStorage.getItem('quizzer:lastTopic');
   const ln = localStorage.getItem('quizzer:lastNum');
   const ld = localStorage.getItem('quizzer:lastDifficulty');
-  const lmSel = localStorage.getItem('quizzer:lastModelSelect');
   if (lt && topicInput) topicInput.value = lt;
   if (ln && numInput) numInput.value = ln;
   if (ld && difficultySelect) difficultySelect.value = ld;
-  if (lmSel && modelSelect) modelSelect.value = lmSel;
 } catch {
 }

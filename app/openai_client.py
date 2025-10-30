@@ -10,7 +10,8 @@ from pydantic import ValidationError
 
 from .models import LLMQuiz, LLMQuestion
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+# Always use a fixed model per product requirements
+DEFAULT_MODEL = "gpt-5-mini"
 
 
 class QuizGenerationError(Exception):
@@ -54,7 +55,7 @@ def _parse_llm_json(json_text: str) -> LLMQuiz:
     return quiz
 
 
-def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, model: str | None = None,
+def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str,
                              max_retries: int = 1) -> LLMQuiz:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -68,8 +69,8 @@ def generate_quiz_via_openai(topic: str, num_questions: int, difficulty: str, mo
         {"role": "user", "content": _build_user_prompt(topic, num_questions, difficulty)},
     ]
 
-    # Choose model: request-provided model takes precedence if non-empty; otherwise use default
-    chosen_model = (model or "").strip() or DEFAULT_MODEL
+    # Always use the fixed default model
+    chosen_model = DEFAULT_MODEL
 
     # generate failed — {"detail":"Failed to generate a valid quiz:
     # Error code: 400 - {'error': {'message': \"Unsupported value:
